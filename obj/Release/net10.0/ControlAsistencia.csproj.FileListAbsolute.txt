@@ -61,4 +61,5 @@ C:\Users\ml395\ControlAsistencia\obj\Release\net10.0\refint\ControlAsistencia.dl
 C:\Users\ml395\ControlAsistencia\obj\Release\net10.0\ControlAsistencia.pdb
 C:\Users\ml395\ControlAsistencia\obj\Release\net10.0\ControlAsistencia.genruntimeconfig.cache
 C:\Users\ml395\ControlAsistencia\obj\Release\net10.0\ref\ControlAsistencia.dll
-C:\Users\ml395\ControlAsistencia\obj\Release\net10.0\compressed\hlha8mvhnb-{0}-41wyul56i0-41wyul56i0.gz
+C:\Users\ml395\ControlAsistencia\obj\Release\net10.0\ControlAsistencia.sourcelink.json
+C:\Users\ml395\ControlAsistencia\obj\Release\net10.0\compressed\hlha8mvhnb-{0}-e2ss06fmgt-e2ss06fmgt.gz

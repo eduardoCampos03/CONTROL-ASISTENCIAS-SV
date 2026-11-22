@@ -12,8 +12,11 @@ string connectionString = "Server=db81265.databaseasp.net; Database=db81265; Use
 string googleScriptUrl = "https://script.google.com/macros/s/AKfycbwSJ4abRmc8j6iyX7fXNHeD7VaCBhlMRhgGLeH1fYAwueHX5AT1x3Jqpo4V4r1fo_74/exec";
 
 // Credenciales de Administrador
-string adminUser = "admin";
-string adminPass = "Admin2026Sv";
+var administradores = new Dictionary<string, string>(StringComparer.Ordinal)
+{
+    { "admin", "Admin2026Sv" },
+    { "Angelasofia", "CarlosyangelaForever" }
+};
 
 // Grados académicos oficiales permitidos
 var gradosPermitidos = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
@@ -26,14 +29,14 @@ var gradosPermitidos = new Dictionary<string, int>(StringComparer.OrdinalIgnoreC
 
 app.MapPost("/api/login", (LoginRequest req) =>
 {
-    if (req.Usuario?.Trim() == adminUser && req.Password == adminPass)
+    string usuarioIngresado = req.Usuario?.Trim() ?? "";
+    if (administradores.TryGetValue(usuarioIngresado, out string? passValida) && passValida == req.Password)
     {
-        string token = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{adminUser}:{DateTime.UtcNow:yyyyMMdd}"));
-        return Results.Ok(new { ok = true, token, usuario = adminUser });
+        string token = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{usuarioIngresado}:{DateTime.UtcNow:yyyyMMdd}"));
+        return Results.Ok(new { ok = true, token, usuario = usuarioIngresado });
     }
     return Results.Json(new { ok = false, mensaje = "Usuario o contraseña incorrectos." }, statusCode: 401);
 });
-
 app.MapGet("/api/grados", async () =>
 {
     var grados = new List<object>();

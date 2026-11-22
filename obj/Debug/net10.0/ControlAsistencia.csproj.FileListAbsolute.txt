@@ -62,3 +62,4 @@ C:\Users\ml395\ControlAsistencia\obj\Debug\net10.0\refint\ControlAsistencia.dll
 C:\Users\ml395\ControlAsistencia\obj\Debug\net10.0\ControlAsistencia.pdb
 C:\Users\ml395\ControlAsistencia\obj\Debug\net10.0\ControlAsistencia.genruntimeconfig.cache
 C:\Users\ml395\ControlAsistencia\obj\Debug\net10.0\ref\ControlAsistencia.dll
+C:\Users\ml395\ControlAsistencia\obj\Debug\net10.0\ControlAsistencia.sourcelink.json
