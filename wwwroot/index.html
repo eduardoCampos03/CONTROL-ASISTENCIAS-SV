@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Registro Académico — Control de Asistencia</title>
+    <style>
+        :root {
+            --bg-page: #f3f4f6;
+            --bg-surface: #ffffff;
+            --border: #d1d5db;
+            --border-light: #e5e7eb;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --accent: #0f766e;
+            --accent-hover: #115e59;
+            --danger: #b91c1c;
+            --success: #15803d;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* ================= LOGIN CON ESTRELLAS FUGACES ================= */
+        #loginScreen {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            background: radial-gradient(ellipse at bottom, #111827 0%, #050811 100%);
+            overflow: hidden;
+        }
+
+        #starCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .login-box {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-top: 4px solid var(--accent);
+            border-radius: 6px;
+            padding: 2.25rem 2rem;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.55);
+        }
+
+        .login-header {
+            margin-bottom: 1.75rem;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 1rem;
+        }
+
+        .login-header .tag {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 0.35rem;
+        }
+
+        .login-header h1 {
+            margin: 0;
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .login-header p {
+            margin: 0.25rem 0 0;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .form-group {
+            margin-bottom: 1.1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.35rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.55rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 14px;
+            color: var(--text-main);
+            background: #fff;
+            transition: border-color 0.15s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.15);
+        }
+
+        .form-control[readonly] {
+            background-color: #f9fafb;
+            color: #4b5563;
+            font-weight: 600;
+        }
+
+        /* ================= OJO ANIMADO DE CONTRASEÑA ================= */
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-wrapper .form-control {
+            padding-right: 2.5rem;
+        }
+
+        .toggle-eye-btn {
+            position: absolute;
+            right: 0.55rem;
+            background: none;
+            border: none;
+            padding: 0.25rem;
+            cursor: pointer;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            opacity: 0;
+            transform: scale(0.65);
+            pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease, background-color 0.2s ease;
+        }
+
+        .toggle-eye-btn.visible {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        .toggle-eye-btn:hover {
+            color: var(--accent);
+            background-color: rgba(15, 118, 110, 0.08);
+        }
+
+        .toggle-eye-btn.blink {
+            animation: eyeBlink 0.35s ease;
+        }
+
+        .eye-lid {
+            transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: 12px 12px;
+        }
+
+        .eye-pupil {
+            transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+            transform-origin: 12px 12px;
+        }
+
+        .eye-slash {
+            stroke-dasharray: 28;
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 0.3s ease;
+        }
+
+        .toggle-eye-btn.revealed .eye-slash {
+            stroke-dashoffset: 28;
+        }
+
+        .toggle-eye-btn.revealed .eye-pupil {
+            transform: scale(1.18);
+            color: var(--accent);
+        }
+
+        @keyframes eyeBlink {
+            0% { transform: scaleY(1); }
+            45% { transform: scaleY(0.12); }
+            100% { transform: scaleY(1); }
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 0.65rem 1rem;
+            background-color: var(--accent);
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        #loginError {
+            margin-top: 0.9rem;
+            font-size: 13px;
+            color: var(--danger);
+            text-align: center;
+            min-height: 18px;
+        }
+
+        /* ================= PANEL PRINCIPAL ================= */
+        #appScreen {
+            display: none;
+        }
+
+        .topbar {
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 1.5rem;
+            height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--text-main);
+        }
+
+        .brand-badge {
+            width: 28px;
+            height: 28px;
+            background: var(--accent);
+            color: #fff;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: #374151;
+            padding: 0.4rem 0.85rem;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .btn-outline:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+            color: var(--text-main);
+        }
+
+        .nav-tabs {
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 1.5rem;
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .tab-link {
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 0.85rem 0.25rem;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .tab-link:hover {
+            color: var(--text-main);
+        }
+
+        .tab-link.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+            font-weight: 600;
+        }
+
+        .main-container {
+            max-width: 1100px;
+            margin: 1.5rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .panel {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1.5rem;
+        }
+
+        .panel-title {
+            margin: 0 0 1.25rem;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-main);
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 0.75rem;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: flex-end;
+            margin-bottom: 1.25rem;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .field label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #4b5563;
+        }
+
+        .helper-note {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin: -0.5rem 0 1rem;
+        }
+
+        /* Tarjetas de cupo por sección */
+        .cupos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .cupo-card {
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 0.75rem 0.9rem;
+            background: #f9fafb;
+        }
+
+        .cupo-card-title {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-main);
+            margin-bottom: 0.3rem;
+        }
+
+        .cupo-card-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #374151;
+            margin-bottom: 0.4rem;
+        }
+
+        .cupo-badge-lleno {
+            color: var(--danger);
+            font-weight: 700;
+        }
+
+        .cupo-badge-libre {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.25s ease;
+        }
+
+        .progress-fill.full {
+            background: var(--danger);
+        }
+
+        .btn {
+            padding: 0.55rem 1rem;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-accent:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            border-color: var(--border);
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background: #f9fafb;
+            color: #374151;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            padding: 0.7rem 0.9rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 0.65rem 0.9rem;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 14px;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #fcfcfd;
+        }
+
+        tbody tr:hover {
+            background: #f3f4f6;
+        }
+
+        .radio-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .radio-row label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            cursor: pointer;
+            font-size: 13px;
+            color: #374151;
+        }
+
+        .radio-row input[type="radio"] {
+            accent-color: var(--accent);
+        }
+
+        .footer-actions {
+            margin-top: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .status-msg {
+            font-size: 13px;
+            font-weight: 500;
+            margin-top: 0.75rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PANTALLA DE ACCESO CON ESTRELLAS FUGACES -->
+    <div id="loginScreen">
+        <canvas id="starCanvas"></canvas>
+        <div class="login-box">
+            <div class="login-header">
+                <span class="tag">Módulo Administrativo</span>
+                <h1>Control de Asistencia</h1>
+                <p>Ingrese sus credenciales institucionales para continuar</p>
+            </div>
+
+            <div class="form-group">
+                <label for="loginUsuario">Usuario</label>
+                <input type="text" id="loginUsuario" class="form-control" autocomplete="username" />
+            </div>
+
+            <div class="form-group">
+                <label for="loginPassword">Contraseña</label>
+                <div class="password-wrapper">
+                    <input type="password" id="loginPassword" class="form-control" autocomplete="current-password" />
+                    <button type="button" id="togglePasswordBtn" class="toggle-eye-btn" aria-label="Mostrar u ocultar contraseña" title="Mostrar contraseña">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path class="eye-lid" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path>
+                            <circle class="eye-pupil" cx="12" cy="12" r="3"></circle>
+                            <line class="eye-slash" x1="3" y1="3" x2="21" y2="21"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="iniciarSesion()">Iniciar sesión</button>
+            <div id="loginError"></div>
+        </div>
+    </div>
+
+    <!-- SISTEMA PRINCIPAL -->
+    <div id="appScreen">
+        <header class="topbar">
+            <div class="brand">
+                <div class="brand-badge">CA</div>
+                <span>Gestión de Asistencia Estudiantil</span>
+            </div>
+            <button class="btn-outline" onclick="cerrarSesion()">Cerrar sesión</button>
+        </header>
+
+        <nav class="nav-tabs">
+            <button class="tab-link active" onclick="mostrarTab('tabAsistencia', this)">Registro diario</button>
+            <button class="tab-link" onclick="mostrarTab('tabNuevo', this)">Alta de estudiante</button>
+            <button class="tab-link" onclick="mostrarTab('tabReporte', this)">Reportes mensuales</button>
+        </nav>
+
+        <main class="main-container">
+            <!-- PESTAÑA 1: ASISTENCIA -->
+            <section id="tabAsistencia" class="panel">
+                <h2 class="panel-title">Toma de asistencia por nivel y sección</h2>
+
+                <div class="toolbar">
+                    <div class="field">
+                        <label for="selectGrado">Nivel / Sección (Matriculados y cupo)</label>
+                        <select id="selectGrado" class="form-control" style="min-width: 310px;">
+                            <option value="">Seleccione nivel...</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="fechaAsistencia">Fecha de registro (Desde hoy)</label>
+                        <input type="date" id="fechaAsistencia" class="form-control" />
+                    </div>
+
+                    <button class="btn btn-accent" onclick="cargarEstudiantes()">Consultar lista</button>
+                    <button class="btn btn-secondary" onclick="limpiarSeleccionAsistencia()">Limpiar selección</button>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 115px;">Código</th>
+                                <th>Nombre del estudiante</th>
+                                <th style="width: 280px;">Estado</th>
+                                <th>Observación</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaEstudiantes">
+                            <tr>
+                                <td colspan="4" style="text-align:center; color:#6b7280; padding:1.5rem;">
+                                    Seleccione un nivel y presione "Consultar lista" para mostrar los estudiantes.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="footer-actions">
+                    <button class="btn btn-accent" onclick="guardarAsistencia()">Guardar registro de asistencia</button>
+                </div>
+                <div id="msgAsistencia" class="status-msg"></div>
+            </section>
+
+            <!-- PESTAÑA 2: NUEVO ESTUDIANTE -->
+            <section id="tabNuevo" class="panel hidden">
+                <h2 class="panel-title">Matrícula de estudiante</h2>
+                <p class="helper-note">
+                    El código institucional se genera automáticamente según el grado académico y la edad. Cada sección admite un máximo de 30 estudiantes; al llenarse, los nuevos ingresos pasan automáticamente a la siguiente sección.
+                </p>
+
+                <div class="toolbar">
+                    <div class="field">
+                        <label for="nuevoNombre">Nombre completo</label>
+                        <input type="text" id="nuevoNombre" class="form-control" placeholder="Apellidos y nombres" style="min-width: 260px;" />
+                    </div>
+
+                    <div class="field">
+                        <label for="nuevoGrado">Grado académico</label>
+                        <select id="nuevoGrado" class="form-control" style="min-width: 185px;" onchange="actualizarVistaPreviaCodigo()">
+                            <option value="">Seleccione grado...</option>
+                            <option value="bachillerato">Bachillerato</option>
+                            <option value="tecnico">Técnico</option>
+                            <option value="universidad">Universidad</option>
+                            <option value="posgrado">Posgrado</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="nuevoEdad">Edad</label>
+                        <input type="number" id="nuevoEdad" class="form-control" placeholder="Ej. 20" min="12" max="99" style="width: 100px;" oninput="actualizarVistaPreviaCodigo()" />
+                    </div>
+
+                    <div class="field">
+                        <label for="previewCodigo">Estructura ID</label>
+                        <input type="text" id="previewCodigo" class="form-control" value="Auto-generado" readonly style="width: 145px;" />
+                    </div>
+
+                    <button class="btn btn-accent" onclick="registrarEstudiante()">Matricular estudiante</button>
+                    <button class="btn btn-secondary" onclick="limpiarFormularioNuevo()">Limpiar</button>
+                </div>
+                <div id="msgNuevo" class="status-msg"></div>
+
+                <!-- RESUMEN DE CUPOS POR SECCIÓN -->
+                <div id="contenedorCupos" class="cupos-grid"></div>
+            </section>
+
+            <!-- PESTAÑA 3: REPORTE MENSUAL -->
+            <section id="tabReporte" class="panel hidden">
+                <h2 class="panel-title">Exportación y envío de reporte mensual (CSV)</h2>
+
+                <div class="toolbar">
+                    <div class="field">
+                        <label for="mesReporte">Mes a consolidar</label>
+                        <input type="month" id="mesReporte" class="form-control" />
+                    </div>
+
+                    <div class="field">
+                        <label for="correoDestino">Correo electrónico destino</label>
+                        <input type="email" id="correoDestino" class="form-control" placeholder="destinatario@dominio.com" style="min-width: 260px;" />
+                    </div>
+
+                    <button class="btn btn-accent" onclick="enviarReporte()">Enviar reporte por correo</button>
+                    <button class="btn btn-secondary" onclick="limpiarReporte()">Limpiar</button>
+                </div>
+                <div id="msgReporte" class="status-msg"></div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        /* ================= ANIMACIÓN DE ESTRELLAS FUGACES ================= */
+        (function initStarfield() {
+            const canvas = document.getElementById('starCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            const stars = [];
+            const shootingStars = [];
+
+            function resize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            for (let i = 0; i < 130; i++) {
+                stars.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    radius: Math.random() * 1.4 + 0.3,
+                    alpha: Math.random(),
+                    delta: (Math.random() * 0.015 + 0.004) * (Math.random() < 0.5 ? 1 : -1)
+                });
+            }
+
+            function spawnShootingStar() {
+                const startX = Math.random() * width * 1.1;
+                const startY = Math.random() * height * 0.45;
+                const angle = Math.PI / 4 + (Math.random() * 0.18 - 0.09);
+                const speed = Math.random() * 7 + 9;
+                shootingStars.push({
+                    x: startX,
+                    y: startY,
+                    vx: -Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    length: Math.random() * 90 + 70,
+                    alpha: 1,
+                    decay: Math.random() * 0.014 + 0.012
+                });
+            }
+
+            setInterval(() => {
+                if (document.getElementById('loginScreen').style.display !== 'none' && shootingStars.length < 4) {
+                    spawnShootingStar();
+                }
+            }, 1400);
+
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+
+                for (const s of stars) {
+                    s.alpha += s.delta;
+                    if (s.alpha <= 0.15 || s.alpha >= 0.95) s.delta *= -1;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(226, 232, 240, ${s.alpha})`;
+                    ctx.fill();
+                }
+
+                for (let i = shootingStars.length - 1; i >= 0; i--) {
+                    const st = shootingStars[i];
+                    st.x += st.vx;
+                    st.y += st.vy;
+                    st.alpha -= st.decay;
+
+                    if (st.alpha <= 0) {
+                        shootingStars.splice(i, 1);
+                        continue;
+                    }
+
+                    const mag = Math.hypot(st.vx, st.vy);
+                    const tailX = st.x - (st.vx / mag) * st.length;
+                    const tailY = st.y - (st.vy / mag) * st.length;
+
+                    const grad = ctx.createLinearGradient(st.x, st.y, tailX, tailY);
+                    grad.addColorStop(0, `rgba(255, 255, 255, ${st.alpha})`);
+                    grad.addColorStop(0.4, `rgba(94, 234, 212, ${st.alpha * 0.45})`);
+                    grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+                    ctx.beginPath();
+                    ctx.moveTo(st.x, st.y);
+                    ctx.lineTo(tailX, tailY);
+                    ctx.strokeStyle = grad;
+                    ctx.lineWidth = 1.8;
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.arc(st.x, st.y, 1.8, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${st.alpha})`;
+                    ctx.fill();
+                }
+
+                requestAnimationFrame(animate);
+            }
+            animate();
+        })();
+
+        /* ================= OJO ANIMADO PARA MOSTRAR CONTRASEÑA ================= */
+        const inputPass = document.getElementById('loginPassword');
+        const togglePassBtn = document.getElementById('togglePasswordBtn');
+
+        inputPass.addEventListener('input', () => {
+            if (inputPass.value.length > 0) {
+                togglePassBtn.classList.add('visible');
+            } else {
+                togglePassBtn.classList.remove('visible', 'revealed');
+                inputPass.type = 'password';
+            }
+        });
+
+        togglePassBtn.addEventListener('click', () => {
+            const mostrando = inputPass.type === 'text';
+            inputPass.type = mostrando ? 'password' : 'text';
+            togglePassBtn.classList.toggle('revealed', !mostrando);
+            togglePassBtn.title = mostrando ? 'Mostrar contraseña' : 'Ocultar contraseña';
+
+            togglePassBtn.classList.remove('blink');
+            void togglePassBtn.offsetWidth;
+            togglePassBtn.classList.add('blink');
+            inputPass.focus();
+        });
+
+        /* ================= LÓGICA DEL SISTEMA ================= */
+        const hoy = new Date(Date.now() - 6 * 3600 * 1000).toISOString().split('T')[0];
+        const inputFechaAsistencia = document.getElementById('fechaAsistencia');
+        inputFechaAsistencia.value = hoy;
+        inputFechaAsistencia.min = hoy;
+        document.getElementById('mesReporte').value = hoy.slice(0, 7);
+
+        inputFechaAsistencia.addEventListener('change', () => {
+            if (inputFechaAsistencia.value && inputFechaAsistencia.value < hoy) {
+                const msg = document.getElementById('msgAsistencia');
+                msg.style.color = '#b91c1c';
+                msg.textContent = 'No se permite seleccionar días pasados. Se restableció la fecha de hoy.';
+                inputFechaAsistencia.value = hoy;
+            }
+        });
+
+        if (sessionStorage.getItem('adminToken')) {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'block';
+            cargarGradosDisponibles();
+        }
+
+        inputPass.addEventListener('keypress', e => {
+            if (e.key === 'Enter') iniciarSesion();
+        });
+
+        function formatearEtiquetaGrado(texto) {
+            if (!texto) return '';
+            return String(texto).split(' ').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+        }
+
+        async function cargarGradosDisponibles() {
+            try {
+                const res = await fetch('/api/grados?t=' + Date.now());
+                const datos = await res.json();
+                const select = document.getElementById('selectGrado');
+                const contenedorCupos = document.getElementById('contenedorCupos');
+
+                const normalizados = datos.map(item => typeof item === 'string'
+                    ? { grado: item, matriculados: 0, disponibles: 30, limite: 30 }
+                    : item);
+
+                select.innerHTML = '<option value="">Seleccione nivel...</option>' +
+                    normalizados.map(item => {
+                        const nombre = formatearEtiquetaGrado(item.grado);
+                        const estadoTexto = item.disponibles === 0
+                            ? `${item.matriculados}/${item.limite} — Lleno`
+                            : `${item.matriculados}/${item.limite} — Faltan ${item.disponibles}`;
+                        return `<option value="${item.grado}">${nombre} (${estadoTexto})</option>`;
+                    }).join('');
+
+                if (contenedorCupos) {
+                    contenedorCupos.innerHTML = normalizados.map(item => {
+                        const nombre = formatearEtiquetaGrado(item.grado);
+                        const pct = Math.min(100, Math.round((item.matriculados / item.limite) * 100));
+                        const lleno = item.disponibles === 0;
+                        const detalle = lleno
+                            ? '<span class="cupo-badge-lleno">Cupo lleno (0 disponibles)</span>'
+                            : `<span class="cupo-badge-libre">Faltan ${item.disponibles} para 30</span>`;
+
+                        return `
+                            <div class="cupo-card">
+                                <div class="cupo-card-title">${nombre}</div>
+                                <div class="cupo-card-stats">
+                                    <span>Matriculados: <strong>${item.matriculados}/30</strong></span>
+                                    ${detalle}
+                                </div>
+                                <div class="progress-track">
+                                    <div class="progress-fill ${lleno ? 'full' : ''}" style="width: ${pct}%;"></div>
+                                </div>
+                            </div>`;
+                    }).join('');
+                }
+            } catch (e) {
+                console.error('Error cargando niveles:', e);
+            }
+        }
+
+        function actualizarVistaPreviaCodigo() {
+            const grado = document.getElementById('nuevoGrado').value;
+            const edad = parseInt(document.getElementById('nuevoEdad').value);
+            const prefijos = { bachillerato: 1, tecnico: 2, universidad: 3, posgrado: 4 };
+            const preview = document.getElementById('previewCodigo');
+
+            if (prefijos[grado] && edad >= 12 && edad <= 99) {
+                preview.value = `${prefijos[grado]}${edad}XXX`;
+            } else {
+                preview.value = 'Auto-generado';
+            }
+        }
+
+        async function iniciarSesion() {
+            const usuario = document.getElementById('loginUsuario').value.trim();
+            const password = inputPass.value;
+            const errDiv = document.getElementById('loginError');
+            errDiv.textContent = '';
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario, password })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.ok) {
+                    sessionStorage.setItem('adminToken', data.token);
+                    document.getElementById('loginUsuario').value = '';
+                    inputPass.value = '';
+                    inputPass.type = 'password';
+                    togglePassBtn.classList.remove('visible', 'revealed');
+                    document.getElementById('loginScreen').style.display = 'none';
+                    document.getElementById('appScreen').style.display = 'block';
+                    cargarGradosDisponibles();
+                } else {
+                    errDiv.textContent = data.mensaje || 'Credenciales incorrectas.';
+                }
+            } catch (e) {
+                errDiv.textContent = 'Error de conexión con el servidor.';
+            }
+        }
+
+        function cerrarSesion() {
+            sessionStorage.removeItem('adminToken');
+            limpiarSeleccionAsistencia();
+            document.getElementById('appScreen').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'flex';
+        }
+
+        function mostrarTab(id, btn) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('.tab-link').forEach(t => t.classList.remove('active'));
+            document.getElementById(id).classList.remove('hidden');
+            btn.classList.add('active');
+        }
+
+        async function cargarEstudiantes() {
+            const grado = document.getElementById('selectGrado').value;
+            const fecha = document.getElementById('fechaAsistencia').value;
+            const tbody = document.getElementById('tablaEstudiantes');
+            const msg = document.getElementById('msgAsistencia');
+            msg.textContent = '';
+
+            if (fecha < hoy) {
+                msg.style.color = '#b91c1c';
+                msg.textContent = 'No se permite consultar ni registrar asistencias de días pasados.';
+                document.getElementById('fechaAsistencia').value = hoy;
+                return;
+            }
+
+            if (!grado) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#b91c1c;padding:1.2rem;">Seleccione un nivel antes de consultar.</td></tr>';
+                return;
+            }
+
+            const res = await fetch(`/api/estudiantes?grado=${encodeURIComponent(grado)}&fecha=${fecha}`);
+            const estudiantes = await res.json();
+
+            if (estudiantes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:1.2rem;">No existen estudiantes registrados en este nivel.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = estudiantes.map(est => `
+                <tr data-id="${est.id}">
+                    <td><strong>${est.codigo}</strong></td>
+                    <td>${est.nombre}</td>
+                    <td>
+                        <div class="radio-row">
+                            <label><input type="radio" name="estado_${est.id}" value="Presente" ${est.estadoHoy === 'Presente' ? 'checked' : ''}> Presente</label>
+                            <label><input type="radio" name="estado_${est.id}" value="Ausente" ${est.estadoHoy === 'Ausente' ? 'checked' : ''}> Ausente</label>
+                            <label><input type="radio" name="estado_${est.id}" value="Permiso" ${est.estadoHoy === 'Permiso' ? 'checked' : ''}> Permiso</label>
+                        </div>
+                    </td>
+                    <td><input type="text" class="form-control obs-input" value="${est.observacionHoy || ''}" placeholder="Nota opcional" style="padding:0.35rem 0.55rem;" /></td>
+                </tr>
+            `).join('');
+        }
+
+        function limpiarSeleccionAsistencia() {
+            document.querySelectorAll('#tablaEstudiantes input[type="radio"]').forEach(r => r.checked = false);
+            document.querySelectorAll('#tablaEstudiantes .obs-input').forEach(i => i.value = '');
+            document.getElementById('msgAsistencia').textContent = '';
+        }
+
+        async function guardarAsistencia() {
+            const fecha = document.getElementById('fechaAsistencia').value;
+            const msg = document.getElementById('msgAsistencia');
+
+            if (fecha < hoy) {
+                msg.style.color = '#b91c1c';
+                msg.textContent = 'No se permite registrar ni modificar asistencias de días pasados.';
+                document.getElementById('fechaAsistencia').value = hoy;
+                return;
+            }
+
+            const filas = document.querySelectorAll('#tablaEstudiantes tr[data-id]');
+            const registros = [];
+
+            filas.forEach(tr => {
+                const id = parseInt(tr.dataset.id);
+                const radio = tr.querySelector(`input[name="estado_${id}"]:checked`);
+                const obs = tr.querySelector('.obs-input').value.trim();
+                if (radio) {
+                    registros.push({ estudianteId: id, estado: radio.value, observacion: obs });
+                }
+            });
+
+            if (registros.length === 0) {
+                msg.style.color = '#b91c1c';
+                msg.textContent = 'Debe marcar el estado de al menos un estudiante antes de guardar.';
+                return;
+            }
+
+            const res = await fetch('/api/asistencia', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fecha, registros })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                limpiarSeleccionAsistencia();
+                document.getElementById('selectGrado').value = '';
+                document.getElementById('tablaEstudiantes').innerHTML = '<tr><td colspan="4" style="text-align:center;color:#6b7280;padding:1.5rem;">Seleccione un nivel y presione "Consultar lista" para mostrar los estudiantes.</td></tr>';
+                msg.style.color = '#15803d';
+                msg.textContent = data.mensaje;
+            } else {
+                msg.style.color = '#b91c1c';
+                msg.textContent = data.mensaje || 'No se pudo guardar el registro de asistencia.';
+            }
+        }
+
+        function limpiarFormularioNuevo() {
+            document.getElementById('nuevoNombre').value = '';
+            document.getElementById('nuevoGrado').value = '';
+            document.getElementById('nuevoEdad').value = '';
+            document.getElementById('previewCodigo').value = 'Auto-generado';
+            document.getElementById('msgNuevo').textContent = '';
+        }
+
+        async function registrarEstudiante() {
+            const nombre = document.getElementById('nuevoNombre').value;
+            const grado = document.getElementById('nuevoGrado').value;
+            const edad = parseInt(document.getElementById('nuevoEdad').value);
+            const msg = document.getElementById('msgNuevo');
+
+            const res = await fetch('/api/estudiantes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre, grado, edad })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                limpiarFormularioNuevo();
+                cargarGradosDisponibles();
+                msg.style.color = '#15803d';
+                msg.textContent = data.mensaje;
+            } else {
+                msg.style.color = '#b91c1c';
+                msg.textContent = data.mensaje || 'Error al registrar estudiante.';
+            }
+        }
+
+        function limpiarReporte() {
+            document.getElementById('correoDestino').value = '';
+            document.getElementById('msgReporte').textContent = '';
+        }
+
+        async function enviarReporte() {
+            const mes = document.getElementById('mesReporte').value;
+            const correoDestino = document.getElementById('correoDestino').value.trim();
+            const msg = document.getElementById('msgReporte');
+            msg.style.color = '#374151';
+            msg.textContent = 'Procesando y enviando archivo...';
+
+            const res = await fetch('/api/reporte-mensual', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mes, correoDestino })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                document.getElementById('correoDestino').value = '';
+                msg.style.color = '#15803d';
+                msg.textContent = data.mensaje;
+            } else {
+                msg.style.color = '#b91c1c';
+                msg.textContent = data.detail || data.mensaje || 'Error al enviar el reporte.';
+            }
+        }
+    </script>
+</body>
+</html>
